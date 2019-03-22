@@ -35,15 +35,18 @@ int main(){
     
 }
 
+/*a descricao:data:inicio:duracao:sala:responsavel:participantes*/
+/*a Reuniao dos Ze:29032019:1000:60:1:Ze:Ze Carlos:Ze Pedro:Ze Joao*/
 void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
 
     evento a;
-    int c, numLetras = 0, count = 10000000, data = 0;
+    int c, numLetras = 0, count = 10000000, data = 0, hora = 0, duracao = 0;
     
     while((c = getchar()) != ':' && numLetras < 63 ){
         a.descricao[numLetras] = c;
         numLetras ++;        
     }
+    a.descricao[numLetras] = '\0';
 
     while((c = getchar()) != ':' ){
         c = c - '0';
@@ -52,8 +55,61 @@ void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
     }
     a.dia = data;
 
+    count = 1000;
+    while((c = getchar()) != ':' ){
+        c = c - '0';
+        hora = c*count + hora;
+        count = count/10;              
+    }
+    a.inicio = hora;
 
+    count = 10;
+    while((c = getchar()) != ':' ){
+        c = c - '0';
+        duracao = c*count + duracao;
+        count = count/10;              
+    }
+    a.duracao = duracao;
+
+    a.sala = getchar();
+    a.sala = a.sala - '0';
+    getchar();
+
+    numLetras = 0;
+    while((c = getchar()) != ':' && numLetras < 63 ){
+        a.responsavel[numLetras] = c;
+        numLetras ++;        
+    }
+    a.responsavel[numLetras] = '\0';
+
+    numLetras = 0;
+    while((c = getchar()) != ':' && numLetras < 63 && c != '\n'){
+        a.participante_um[numLetras] = c;
+        numLetras ++;   
+    }
+    a.participante_um[numLetras] = '\0';
+
+    numLetras = 0;
+    while(c != '\n' && numLetras < 63 && (c = getchar()) != ':'){
+        a.participante_dois[numLetras] = c;
+        numLetras ++;   
+    }
+    a.participante_dois[numLetras] = '\0';
+
+    numLetras = 0;
+    while(c != '\n' && numLetras < 63 && (c = getchar()) != ':'){
+        a.participante_tres[numLetras] = c;
+        numLetras ++;   
+    }
+    a.participante_tres[numLetras] = '\0';
 
     printf("%s\n", a.descricao);
     printf("%d\n", a.dia);
+    printf("%d\n", a.inicio);
+    printf("%d\n", a.duracao);
+    printf("%d\n", a.sala);
+    printf("%s\n", a.responsavel);
+    printf("%s\n", a.participante_um);
+    /*printf("%s\n", a.participante_dois);
+    printf("%s\n", a.participante_tres);*/
 }
