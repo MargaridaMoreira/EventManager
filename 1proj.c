@@ -15,9 +15,13 @@ typedef struct {
     char participante_um[MAXIMO_NOME];
     char participante_dois[MAXIMO_NOME];
     char participante_tres[MAXIMO_NOME];
+    int numParticipantes;
 } evento;
 
 void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos);
+int leValores(int count);
+int participantes(evento a);
+int duracaoParaHora(evento a);
 
 int main(){
 
@@ -27,89 +31,122 @@ int main(){
     char opcao;
     opcao = getchar();
 
-    if (opcao == 'a'){
-        adicionaEvento(reservaSalas, numEventos);
-        numEventos++;
+    while(opcao != '0'){
+        if (opcao == 'a'){
+            adicionaEvento(reservaSalas, numEventos);
+            numEventos++;
+        }
+        opcao = getchar();
     }
+
+    
     return 0;
     
 }
 
-/*a descricao:data:inicio:duracao:sala:responsavel:participantes*/
-/*a Reuniao dos Ze:29032019:1000:60:1:Ze:Ze Carlos:Ze Pedro:Ze Joao*/
+/*hora inicio do evento 2 >= hora de conclusao do evento 1
+não é preciso verificar input*/
+
+
 void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
 
     evento a;
-    int c, numLetras = 0, count = 10000000, data = 0, hora = 0, duracao = 0;
+    int c, i, j, numLetras = 0;
     
-    while((c = getchar()) != ':' && numLetras < 63 ){
+    while((c = getchar()) != ':'){
         a.descricao[numLetras] = c;
         numLetras ++;        
     }
     a.descricao[numLetras] = '\0';
 
-    while((c = getchar()) != ':' ){
-        c = c - '0';
-        data = c*count + data;
-        count = count/10;              
-    }
-    a.dia = data;
-
-    count = 1000;
-    while((c = getchar()) != ':' ){
-        c = c - '0';
-        hora = c*count + hora;
-        count = count/10;              
-    }
-    a.inicio = hora;
-
-    count = 10;
-    while((c = getchar()) != ':' ){
-        c = c - '0';
-        duracao = c*count + duracao;
-        count = count/10;              
-    }
-    a.duracao = duracao;
-
-    a.sala = getchar();
-    a.sala = a.sala - '0';
-    getchar();
+    a.dia = leValores(10000000);
+    a.inicio = leValores(1000);
+    a.duracao = leValores(10);
+    a.sala = leValores(1);
 
     numLetras = 0;
-    while((c = getchar()) != ':' && numLetras < 63 ){
+    while((c = getchar()) != ':'){
         a.responsavel[numLetras] = c;
         numLetras ++;        
     }
     a.responsavel[numLetras] = '\0';
 
     numLetras = 0;
-    while((c = getchar()) != ':' && numLetras < 63 && c != '\n'){
+    while((c = getchar()) != ':' && c != '\n'){
         a.participante_um[numLetras] = c;
         numLetras ++;   
     }
     a.participante_um[numLetras] = '\0';
 
     numLetras = 0;
-    while(c != '\n' && numLetras < 63 && (c = getchar()) != ':'){
+    while(c != '\n' && (c = getchar()) != ':'){
         a.participante_dois[numLetras] = c;
         numLetras ++;   
     }
     a.participante_dois[numLetras] = '\0';
 
     numLetras = 0;
-    while(c != '\n' && numLetras < 63 && (c = getchar()) != ':'){
+    while(c != '\n' && (c = getchar()) != ':'){
         a.participante_tres[numLetras] = c;
         numLetras ++;   
     }
     a.participante_tres[numLetras] = '\0';
 
-    printf("%s\n", a.descricao);
-    printf("%d\n", a.dia);
-    printf("%d\n", a.inicio);
-    printf("%d\n", a.duracao);
-    printf("%d\n", a.sala);
-    printf("%s\n", a.responsavel);
-    printf("%s\n", a.participante_um);
-    /*printf("%s\n", a.participante_dois);
-    printf("%s\n", a.participante_tres);*/
+    for(i = 0; i < EVENTOS; i ++){
+        if (a.dia == reservaSalas[a.sala][i].dia && a.sala == reservaSalas[a.sala][i].sala
+            && a.inicio <= duracaoParaHora(reservaSalas[a.sala][i])) {
+            printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
+            return;
+        }
+
+    }
+
+    for(i = 0; i < SALAS; i++){
+        for(j = 0; j < EVENTOS; j++){
+            if(strcmp(a.responsavel, reservaSalas[i][j].responsavel) == 0){
+
+            }
+        }
+
+    }
+
+
+
+    getchar();
+    reservaSalas[a.sala][numEventos] = a;
+
+
+}
+
+int leValores(int count){
+    int valor = 0, c;
+    while((c = getchar()) != ':' ){
+        c = c - '0';
+        valor = c*count + valor;
+        count = count/10;              
+    }
+    return valor;
+}
+
+int participantes(evento a){
+    int num = 1;
+
+    if (a.participante_dois[0] != '\0'){
+        num ++;
+    }
+    if (a.participante_tres[0] != '\0'){
+        num ++;
+    }
+    return num;
+}
+
+int duracaoParaHora(evento a){
+    int i = a.inicio%100 + a.duracao;
+    int hora = 0;
+    if (i > 60 || i == 60){
+        hora = (a.inicio + 100) + (i - 60);
+    } else {
+        hora = a.inicio + a.duracao;
+    }
+    return hora;
 }
