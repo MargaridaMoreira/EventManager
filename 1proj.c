@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define SALAS 10
 #define EVENTOS 100
 #define MAXIMO_NOME 63
+#define MAX 340
 
 typedef struct {
     char descricao[MAXIMO_NOME];
@@ -19,20 +21,18 @@ typedef struct {
 } evento;
 
 void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos);
-int leValores(int count);
-int participantes(evento a);
 int duracaoParaHora(evento a);
 
 int main(){
-
-   evento reservaSalas[SALAS][EVENTOS];
+    evento reservaSalas[SALAS][EVENTOS];
    int numEventos = 0;
     
     char opcao;
     opcao = getchar();
 
-    while(opcao != '0'){
+    while(opcao != 'x'){
         if (opcao == 'a'){
+            getchar();
             adicionaEvento(reservaSalas, numEventos);
             numEventos++;
         }
@@ -41,103 +41,57 @@ int main(){
 
     
     return 0;
-    
 }
 
-/*hora inicio do evento 2 >= hora de conclusao do evento 1
-não é preciso verificar input*/
-
-
 void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
-
-    evento a;
-    int c, i, j, numLetras = 0;
     
-    while((c = getchar()) != ':'){
-        a.descricao[numLetras] = c;
-        numLetras ++;        
-    }
-    a.descricao[numLetras] = '\0';
+    char texto[MAX];
+    char descricao[9][MAXIMO_NOME];
+    char *token;
+    int i, c, size = 0;
+    evento a;
 
-    a.dia = leValores(10000000);
-    a.inicio = leValores(1000);
-    a.duracao = leValores(10);
-    a.sala = leValores(1);
-
-    numLetras = 0;
-    while((c = getchar()) != ':'){
-        a.responsavel[numLetras] = c;
-        numLetras ++;        
+    c = getchar();
+    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+        texto[i] = c;
+        c = getchar();
     }
-    a.responsavel[numLetras] = '\0';
 
-    numLetras = 0;
-    while((c = getchar()) != ':' && c != '\n'){
-        a.participante_um[numLetras] = c;
-        numLetras ++;   
+    i = 0;
+    token = strtok(texto, ":");
+    while( token != NULL ) {
+        strcpy(descricao[i], token);
+        token = strtok(NULL, ":"); 
+        size ++;
+        i ++;
     }
-    a.participante_um[numLetras] = '\0';
 
-    numLetras = 0;
-    while(c != '\n' && (c = getchar()) != ':'){
-        a.participante_dois[numLetras] = c;
-        numLetras ++;   
+    a.numParticipantes = size - 6;
+    strcpy(a.descricao, descricao[0]);
+    a.dia = atoi(descricao[1]);
+    a.duracao = atoi(descricao[2]);
+    a.inicio = atoi(descricao[3]);
+    a.sala = atoi(descricao[4]);
+    strcpy(a.responsavel, descricao[5]);
+    strcpy(a.participante_um, descricao[6]);
+    if (a.numParticipantes == 3){
+        strcpy(a.participante_dois, descricao[7]);
+        strcpy(a.participante_tres, descricao[8]);
     }
-    a.participante_dois[numLetras] = '\0';
-
-    numLetras = 0;
-    while(c != '\n' && (c = getchar()) != ':'){
-        a.participante_tres[numLetras] = c;
-        numLetras ++;   
+    if (a.numParticipantes == 2) {
+        strcpy(a.participante_dois, descricao[7]);
     }
-    a.participante_tres[numLetras] = '\0';
 
     for(i = 0; i < EVENTOS; i ++){
-        if (a.dia == reservaSalas[a.sala][i].dia && a.sala == reservaSalas[a.sala][i].sala
-            && a.inicio <= duracaoParaHora(reservaSalas[a.sala][i])) {
+        if (a.sala == reservaSalas[a.sala][i].sala && a.dia == reservaSalas[a.sala][i].dia && 
+            a.inicio <= duracaoParaHora(reservaSalas[a.sala][i])) {
             printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
             return;
         }
 
     }
-
-    for(i = 0; i < SALAS; i++){
-        for(j = 0; j < EVENTOS; j++){
-            if(strcmp(a.responsavel, reservaSalas[i][j].responsavel) == 0){
-
-            }
-        }
-
-    }
-
-
-
-    getchar();
     reservaSalas[a.sala][numEventos] = a;
 
-
-}
-
-int leValores(int count){
-    int valor = 0, c;
-    while((c = getchar()) != ':' ){
-        c = c - '0';
-        valor = c*count + valor;
-        count = count/10;              
-    }
-    return valor;
-}
-
-int participantes(evento a){
-    int num = 1;
-
-    if (a.participante_dois[0] != '\0'){
-        num ++;
-    }
-    if (a.participante_tres[0] != '\0'){
-        num ++;
-    }
-    return num;
 }
 
 int duracaoParaHora(evento a){
@@ -150,3 +104,4 @@ int duracaoParaHora(evento a){
     }
     return hora;
 }
+
