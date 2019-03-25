@@ -20,13 +20,15 @@ typedef struct {
     int numParticipantes;
 } evento;
 
-void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos);
+void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int numEventos);
+void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS], int numEventos);
 int duracaoParaHora(evento a);
 int verificaDisponibilidade(evento a, evento b);
+int ordenaData(evento a);
 
 int main(){
-    evento reservaSalas[SALAS][EVENTOS];
-   int numEventos = 0;
+    evento reservaSalas[SALAS * EVENTOS];
+    int numEventos= 0, sala;
     
     char opcao;
     opcao = getchar();
@@ -35,19 +37,24 @@ int main(){
         if (opcao == 'a'){
             getchar();
             adicionaEvento(reservaSalas, numEventos);
-            numEventos++;
+            numEventos ++;
+        }
+        if (opcao == 's'){
+            getchar();
+            scanf("%d", &sala);
+            listaSala(sala, reservaSalas, numEventos);
         }
         opcao = getchar();
     }
     return 0;
 }
 
-void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
+void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int numEventos){
     
     char texto[MAX];
     char descricao[9][MAXIMO_NOME];
     char *token;
-    int i, j, c, size = 0, teste = 1;
+    int i, c, size = 0, teste = 1;
     evento a;
 
     c = getchar();
@@ -81,50 +88,57 @@ void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
         strcpy(a.participante_dois, descricao[7]);
     }
 
-    for(i = 0; i < EVENTOS; i ++){
-        if (a.sala == reservaSalas[a.sala][i].sala && a.dia == reservaSalas[a.sala][i].dia && 
-            a.inicio <= duracaoParaHora(reservaSalas[a.sala][i])) {
+    for(i = 0; i < numEventos; i ++){
+        if (a.sala == reservaSalas[i].sala && a.dia == reservaSalas[i].dia && 
+            a.inicio <= duracaoParaHora(reservaSalas[i])) {
             printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
             return;
         }
 
     }
 
-    for (i = 0; i < SALAS; i ++){
-        for (j = 0; j < EVENTOS; j ++){
-            if(verificaDisponibilidade(a, reservaSalas[i][j]) == 0){
-                teste = 0;
-            }  
-        }
+    for (i = 0; i < numEventos; i ++){
+        if(verificaDisponibilidade(a, reservaSalas[i]) == 0){
+            teste = 0;
+        }  
     }
 
     if(teste){
-        strcpy(reservaSalas[a.sala][numEventos].descricao, a.descricao);
-        reservaSalas[a.sala][numEventos].dia = a.dia;
-        reservaSalas[a.sala][numEventos].duracao = a.duracao;
-        reservaSalas[a.sala][numEventos].inicio = a.inicio;
-        reservaSalas[a.sala][numEventos].sala = a.sala;
-        strcpy(reservaSalas[a.sala][numEventos].responsavel, a.responsavel);
-        strcpy(reservaSalas[a.sala][numEventos].participante_um, a.participante_um);
-        strcpy(reservaSalas[a.sala][numEventos].participante_dois, a.participante_dois);
-        strcpy(reservaSalas[a.sala][numEventos].participante_tres, a.participante_tres);
-        printf("%s\n", reservaSalas[a.sala][numEventos].descricao);
+        reservaSalas[numEventos] = a;
+        printf("%s\n", reservaSalas[numEventos].descricao);
     }
+
     return; 
 
 }
 
-int duracaoParaHora(evento a){
-    int hora = a.inicio;
-    int minutos = a.duracao;
-    if (a.duracao == 60){
-        hora = hora + 100;
-    } else {
-        minutos = minutos + (hora%100);
-        if (minutos >= 60){
-            hora = hora + 40 + a.duracao;        
+void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS],int numEventos){
+    int i, j;
+    evento a;
+
+    for (i = 0; i < numEventos; i++){
+        for(j = i + 1; j < numEventos; j++){
+            if (ordenaData(reservaSalas[i]) > ordenaData(reservaSalas[j])){
+                a = reservaSalas[i];
+                reservaSalas[i] = reservaSalas[j];
+                reservaSalas[j] = a;
+            } 
+
         }
     }
+
+    for(i = 0; i < numEventos; i ++){
+        if(reservaSalas[i].sala == sala){
+            printf("%s", reservaSalas[i].descricao);
+        }
+    }
+    return;
+    
+}
+
+int duracaoParaHora(evento a){
+    int hora = a.inicio;
+    hora = hora + 100*(a.duracao/60) + a.duracao%60;
     return hora;
 }
 
@@ -147,7 +161,7 @@ int verificaDisponibilidade(evento a, evento b){
         }
     }
     
-    if (a.numParticipantes == 3){
+    if (a.numParticipantes == 3 && b.numParticipantes == 3){
         if(!strcmp(a.participante_tres, b.participante_dois) || !strcmp(a.participante_tres, b.participante_tres)|| 
         !strcmp(a.participante_tres, b.participante_um) || !strcmp(a.participante_tres, b.responsavel)){
             if(a.dia == b.dia && a.inicio <= duracaoParaHora(b)){
@@ -177,3 +191,10 @@ int verificaDisponibilidade(evento a, evento b){
     return teste;
 }
 
+int ordenaData(evento a){
+    int ano = (a.dia%10000);
+    int mes = ((a.dia%1000000) - ano)/100;
+    int dia = a.dia/1000000;
+    return (ano*10000 + mes + dia)*10000 + a.inicio;
+    
+}
