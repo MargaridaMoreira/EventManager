@@ -68,8 +68,8 @@ void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
     a.numParticipantes = size - 6;
     strcpy(a.descricao, descricao[0]);
     a.dia = atoi(descricao[1]);
-    a.duracao = atoi(descricao[2]);
-    a.inicio = atoi(descricao[3]);
+    a.inicio = atoi(descricao[2]);
+    a.duracao = atoi(descricao[3]);
     a.sala = atoi(descricao[4]);
     strcpy(a.responsavel, descricao[5]);
     strcpy(a.participante_um, descricao[6]);
@@ -115,15 +115,17 @@ void adicionaEvento(evento reservaSalas[SALAS][EVENTOS], int numEventos){
 }
 
 int duracaoParaHora(evento a){
-    int i = a.inicio%100 + a.duracao;
-    int hora = 0;
-    if (i > 60 || i == 60){
-        hora = (a.inicio + 100) + (i - 60);
+    int hora = a.inicio;
+    int minutos = a.duracao;
+    if (a.duracao == 60){
+        hora = hora + 100;
     } else {
-        hora = a.inicio + a.duracao;
+        minutos = minutos + (hora%100);
+        if (minutos >= 60){
+            hora = hora + 40 + a.duracao;        
+        }
     }
-    printf("%d\n", hora);
-    return hora-30;
+    return hora;
 }
 
 int verificaDisponibilidade(evento a, evento b){
@@ -131,7 +133,7 @@ int verificaDisponibilidade(evento a, evento b){
 
     if(!strcmp(a.responsavel, b.responsavel) || !strcmp(a.responsavel, b.participante_um) ||
     !strcmp(a.responsavel, b.participante_dois) || !strcmp(a.responsavel, b.participante_tres)){
-        if(a.dia == b.dia && b.inicio <= duracaoParaHora(a)){
+        if(a.dia == b.dia && a.inicio <= duracaoParaHora(b)){
             printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.responsavel);
             teste = 0;
         }
@@ -139,28 +141,39 @@ int verificaDisponibilidade(evento a, evento b){
 
     if(!strcmp(a.participante_um, b.responsavel) || !strcmp(a.participante_um, b.participante_um) || 
     !strcmp(a.participante_um, b.participante_dois) || !strcmp(a.participante_um, b.participante_tres)){
-        if(a.dia == b.dia && b.inicio <= duracaoParaHora(a)){
+        if(a.dia == b.dia && a.inicio <= duracaoParaHora(b)){
             printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_um);
             teste = 0;
         }
     }
+    
+    if (a.numParticipantes == 3){
+        if(!strcmp(a.participante_tres, b.participante_dois) || !strcmp(a.participante_tres, b.participante_tres)|| 
+        !strcmp(a.participante_tres, b.participante_um) || !strcmp(a.participante_tres, b.responsavel)){
+            if(a.dia == b.dia && a.inicio <= duracaoParaHora(b)){
+                printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_dois);
+                teste = 0;
+            }
+        }
 
-    if(!strcmp(a.participante_dois, b.participante_dois) || !strcmp(a.participante_dois, b.participante_tres) ||
+        if(!strcmp(a.participante_dois, b.participante_dois) || !strcmp(a.participante_dois, b.participante_tres) ||
         !strcmp(a.participante_dois, b.participante_um) || !strcmp(a.participante_dois, b.responsavel)){
-        if(a.dia == b.dia && b.inicio <= duracaoParaHora(a)){
-            printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_dois);
-            teste = 0;
+            if(a.dia == b.dia && a.inicio <= duracaoParaHora(b)){
+                printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_tres);
+                teste = 0;
+            }
         }
     }
 
-    if(!strcmp(a.participante_tres, b.participante_dois) || !strcmp(a.participante_tres, b.participante_tres)|| 
-       !strcmp(a.participante_tres, b.participante_um) || !strcmp(a.participante_tres, b.responsavel)){
-        if(a.dia == b.dia && b.inicio <= duracaoParaHora(a)){
-            printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_dois);
-            teste = 0;
+    if(a.numParticipantes == 2){
+        if(!strcmp(a.participante_tres, b.participante_dois) || !strcmp(a.participante_tres, b.participante_tres)|| 
+        !strcmp(a.participante_tres, b.participante_um) || !strcmp(a.participante_tres, b.responsavel)){
+            if(a.dia == b.dia && a.inicio <= duracaoParaHora(b)){
+                printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_dois);
+                teste = 0;
+            }
         }
     }
-
     return teste;
 }
 
