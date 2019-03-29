@@ -29,10 +29,10 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos);
 void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos);
 void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos);
 void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos);
-int duracaoParaHora(evento a);
-int verificaEvento(evento a, evento reservaSalas[SALAS*EVENTOS], int numEventos, int indice);
+int horaFinal(evento a);
 int verifica(evento a, evento existente);
-int verificaDisponibilidade(evento a, evento b);
+int verificaParticipante(char participante[MAXIMO_NOME], evento a, evento b);
+int verificaP(char participante[MAXIMO_NOME], evento a, evento b);
 int ordenaData(evento a);
 void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos);
 int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVENTOS], int numEventos);
@@ -122,40 +122,40 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     strcpy(a.responsavel, descricao[5]);
     strcpy(a.participante_um, descricao[6]);
     strcpy(a.participante_dois, descricao[7]);
-    strcpy(a.participante_tres, descricao[8]);
+    strcpy(a.participante_tres, descricao[8]); 
 
+    for(i = 0; i < (*numEventos); i ++){
+        if(a.sala == reservaSalas[i].sala && !verifica(a, reservaSalas[i])){
+            printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
+            return;
+        }
+    }
 
-        for(i = 0; i < (*numEventos); i ++){
-            if (a.sala == reservaSalas[i].sala && a.dia == reservaSalas[i].dia && 
-                (a.inicio <= duracaoParaHora(reservaSalas[i]) || a.inicio == reservaSalas[i].inicio)) {
-                if(duracaoParaHora(a) <= reservaSalas[i].inicio){
-                    teste = 1;
-                } else {
-                    printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
-                    teste = 0;
-                    return;
-                }
-            }
-        } 
-
-    for (i = 0; i < (*numEventos); i ++){
-        if(verificaDisponibilidade(a, reservaSalas[i]) == 0){
+    for(i = 0; i < (*numEventos); i ++){
+        if(!verificaParticipante(a.responsavel, reservaSalas[i], a)){
             teste = 0;
-        }     
+        }
+        if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
+            teste = 0;
+        }
+        if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+            teste = 0;
+        }
+        if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+            teste = 0;
+        }
     }
    
     if(teste){
         reservaSalas[(*numEventos)] = a;
         (*numEventos) ++;
     }
-
     return;
 }
 
 void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS],int numEventos){
     int i;
     ordenaEventos(reservaSalas, numEventos);
-
     for(i = 0; i < numEventos; i ++){
         if(reservaSalas[i].sala == sala){
             printf("%s %d %04d %d Sala%d %s\n", reservaSalas[i].descricao, reservaSalas[i].dia, 
@@ -216,7 +216,7 @@ void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
 }
 
 void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
-    int i, c;
+    int i, c, indice, teste = 1;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
     evento a;
 
@@ -234,22 +234,46 @@ void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
         token = strtok(NULL, ":"); 
         i ++;
     }
+
+    indice = procuraDescricao(descricao[0], reservaSalas, numEventos);
     
-    if(procuraDescricao(descricao[0], reservaSalas, numEventos) == -1){
+    if(indice == -1){
         printf("Evento %s inexistente.\n", descricao[0]);
         return;
     } else {
-        a = reservaSalas[procuraDescricao(descricao[0], reservaSalas, numEventos)];
+        a = reservaSalas[indice];
         a.inicio = atoi(descricao[1]);
-        if(verificaEvento(a, reservaSalas, numEventos, procuraDescricao(descricao[0], reservaSalas, numEventos))){
-            reservaSalas[procuraDescricao(descricao[0], reservaSalas, numEventos)].inicio = atoi(descricao[1]);
+        for(i = 0; i < numEventos; i ++){
+            if (indice != i){
+                if(a.sala == reservaSalas[i].sala){
+                    if(!verifica(a, reservaSalas[i])){
+                        printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
+                        return;
+                    }
+                }
+                if(!verificaParticipante(a.responsavel, reservaSalas[i], a)){
+                    teste = 0;
+                }
+                if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
+                    teste = 0;
+                }
+                if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                    teste = 0;
+                }
+                if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+                    teste = 0;
+                }         
+            }
+        }
+        if(teste){
+            reservaSalas[indice].inicio = atoi(descricao[1]);
         }
     }
     return;
 }
 
 void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
-    int i, c;
+    int i, c, indice, teste = 1;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
     evento a;
 
@@ -268,21 +292,45 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
         i ++;
     }
     
-    if(procuraDescricao(descricao[0], reservaSalas, numEventos) == -1){
+    indice = procuraDescricao(descricao[0], reservaSalas, numEventos);
+    
+    if(indice == -1){
         printf("Evento %s inexistente.\n", descricao[0]);
         return;
     } else {
-        a = reservaSalas[procuraDescricao(descricao[0], reservaSalas, numEventos)];
+        a = reservaSalas[indice];
         a.duracao = atoi(descricao[1]);
-        if(verificaEvento(a, reservaSalas, numEventos, procuraDescricao(descricao[0], reservaSalas, numEventos))){
-            reservaSalas[procuraDescricao(descricao[0], reservaSalas, numEventos)].duracao = atoi(descricao[1]);
+        for(i = 0; i < numEventos; i ++){
+            if (indice != i){
+                if(a.sala == reservaSalas[i].sala){
+                    if(!verifica(a, reservaSalas[i])){
+                        printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
+                        return;
+                    }
+                }
+                if(!verificaParticipante(a.responsavel, reservaSalas[i], a)){
+                    teste = 0;
+                }
+                if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
+                    teste = 0;
+                }
+                if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                    teste = 0;
+                }
+                if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+                    teste = 0;
+                }         
+            }
+        }
+        if(teste){
+            reservaSalas[indice].duracao = atoi(descricao[1]);
         }
     }
     return;
 }
 
 void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos){
-    int i, c;
+    int i, c, indice;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
     evento a;
 
@@ -301,15 +349,21 @@ void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos){
         i ++;
     }
     
-    if(procuraDescricao(descricao[0], reservaSalas, numEventos) == -1){
+    indice = procuraDescricao(descricao[0], reservaSalas, numEventos);
+    
+    if(indice == -1){
         printf("Evento %s inexistente.\n", descricao[0]);
         return;
     } else {
-        a = reservaSalas[procuraDescricao(descricao[0], reservaSalas, numEventos)];
+        a = reservaSalas[indice];
         a.sala = atoi(descricao[1]);
-        if(verificaEvento(a, reservaSalas, numEventos, procuraDescricao(descricao[0], reservaSalas, numEventos))){
-            reservaSalas[procuraDescricao(descricao[0], reservaSalas, numEventos)].sala = atoi(descricao[1]);
+        for(i = 0; i < numEventos; i ++){
+            if (indice != i && a.sala == reservaSalas[i].sala && !verifica(a, reservaSalas[i])){
+                printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
+                return;                        
+            }
         }
+        reservaSalas[indice].sala = atoi(descricao[1]);
     }
 }
 
@@ -344,16 +398,11 @@ void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
             return;
         }
         for(i = 0; i < numEventos; i ++){
-            if(!strcmp(descricao[1], reservaSalas[i].responsavel) || !strcmp(descricao[1], reservaSalas[i].participante_um) ||
-                !strcmp(descricao[1], reservaSalas[i].participante_dois) || !strcmp(descricao[1], reservaSalas[i].participante_tres)){
-                if(reservaSalas[indice].dia == reservaSalas[i].dia && (reservaSalas[indice].inicio < duracaoParaHora(reservaSalas[i]) || 
-                    reservaSalas[indice].inicio == reservaSalas[i].inicio)){
-                    if(duracaoParaHora(reservaSalas[indice]) >= reservaSalas[i].inicio){
-                        printf("Impossivel adicionar participante. Participante %s tem um evento sobreposto.\n", descricao[1]);
-                        return;
-                    }               
-                }
+            if(!verificaP(descricao[1], reservaSalas[i], reservaSalas[indice])){
+                printf("Impossivel adicionar participante. Participante %s tem um evento sobreposto.\n", descricao[1]);
+                return;
             }
+        
         }
         if(reservaSalas[indice].numParticipantes == 2){
             strcpy(reservaSalas[indice].participante_tres, descricao[1]);
@@ -406,11 +455,9 @@ void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
         }
         reservaSalas[indice].numParticipantes --;
     }
-
 }
 
-
-int duracaoParaHora(evento a){
+int horaFinal(evento a){
     int hora, minutos;
     hora = a.inicio;
     hora = hora + 100*(a.duracao/60) + a.duracao%60;
@@ -419,113 +466,11 @@ int duracaoParaHora(evento a){
     return hora;
 }
 
-int verificaEvento(evento a, evento reservaSalas[SALAS*EVENTOS], int numEventos, int indice){
-    int i, teste = 1;
-    for(i = 0; i < numEventos; i ++){
-        if (indice != i && a.sala == reservaSalas[i].sala && a.dia == reservaSalas[i].dia){
-            if(a.inicio < duracaoParaHora(reservaSalas[i]) || a.inicio == reservaSalas[i].inicio){
-                if(duracaoParaHora(a) <= reservaSalas[i].inicio){
-                    teste = 1;
-                } else {
-                    printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
-                    teste = 0;
-                    return teste;
-                } 
-            }
-        }  
-    }
-
-    for (i = 0; i < numEventos; i ++){
-        if(indice != i && verificaDisponibilidade(a, reservaSalas[i]) == 0){
-            teste = 0;
-            break;
-        }  
-    }
-    return teste;
-
-}
-
-int verificaDisponibilidade(evento a, evento b){
-    int teste = 1;
-
-    if(!strcmp(a.responsavel, b.responsavel) || !strcmp(a.responsavel, b.participante_um) ||
-    !strcmp(a.responsavel, b.participante_dois) || !strcmp(a.responsavel, b.participante_tres)){
-        if(a.dia == b.dia && (a.inicio < duracaoParaHora(b) || a.inicio == b.inicio)){
-            if(duracaoParaHora(a) <= b.inicio){
-                teste = 1;
-            } else {
-                printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.responsavel);
-                teste = 0;
-            }
-        
-        }
-    }
-
-    if(!strcmp(a.participante_um, b.responsavel) || !strcmp(a.participante_um, b.participante_um) || 
-    !strcmp(a.participante_um, b.participante_dois) || !strcmp(a.participante_um, b.participante_tres)){
-        if(a.dia == b.dia && (a.inicio < duracaoParaHora(b) || a.inicio == b.inicio)){
-            if(duracaoParaHora(a) <= b.inicio){
-                teste = 1;
-            } else {
-                printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_um);
-                teste = 0;
-            }
-        
-        }
-    }
-    
-    if (a.numParticipantes == 3){
-        if(!strcmp(a.participante_tres, b.participante_dois) || !strcmp(a.participante_tres, b.participante_tres)|| 
-        !strcmp(a.participante_tres, b.participante_um) || !strcmp(a.participante_tres, b.responsavel)){
-            if(a.dia == b.dia && (a.inicio < duracaoParaHora(b) || a.inicio == b.inicio)){
-                if(duracaoParaHora(a) <= b.inicio){
-                    teste = 1;
-                } else {
-                    printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_tres);
-                    teste = 0;
-                }
-        
-            }   
-        }
-           
-
-        if(!strcmp(a.participante_dois, b.participante_dois) || !strcmp(a.participante_dois, b.participante_tres) ||
-        !strcmp(a.participante_dois, b.participante_um) || !strcmp(a.participante_dois, b.responsavel)){
-            if(a.dia == b.dia && (a.inicio < duracaoParaHora(b) || a.inicio == b.inicio)){
-                if(duracaoParaHora(a) <= b.inicio){
-                    teste = 1;
-                } else {
-                    printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.participante_dois);
-                    teste = 0;
-                }
-        
-            }
-        }
-    }
-
-    if(a.numParticipantes == 2){
-        if(!strcmp(a.participante_dois, b.participante_dois) || !strcmp(a.participante_dois, b.participante_tres)|| 
-        !strcmp(a.participante_dois, b.participante_um) || !strcmp(a.participante_dois, b.responsavel)){
-            if(a.dia == b.dia && (a.inicio < duracaoParaHora(b) || a.inicio == b.inicio)){
-                if(duracaoParaHora(a) <= b.inicio){
-                    teste = 1;
-                } else {
-                    printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", a.descricao, a.responsavel);
-                    teste = 0;
-                }
-        
-            }
-        }
-    }
-    return teste;
-}
-
 int ordenaData(evento a){
     int ano = (a.dia%10000);
     int mes = ((a.dia%1000000) - ano)/100;
     int dia = a.dia/1000000;
-    return (ano*10000 + mes + dia)*10000 + a.inicio;
-    
+    return (ano*10000 + mes + dia)*10000 + a.inicio;  
 }
 
 void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos){
@@ -559,3 +504,44 @@ int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVEN
     return indice;
 }
 
+int verifica(evento a, evento existente){
+    if (a.inicio > existente.inicio){
+        if(horaFinal(existente) > a.inicio){
+            return 0;
+        } else {
+            return 1;
+        }
+    } else if (a.inicio < existente.inicio){
+        if(horaFinal(a) > existente.inicio){
+            return 0;
+        } else {
+            return 1;
+        }
+    } else if (a.inicio == existente.inicio){
+        return 0;
+    }
+    return 1;
+}
+
+int verificaParticipante(char participante[MAXIMO_NOME], evento a, evento b){
+    int teste = 1;
+    if(!strcmp(participante, a.participante_um) || !strcmp(participante, a.participante_dois) || 
+       !strcmp(participante, a.responsavel) || !strcmp(participante, a.participante_tres)){
+            if(!verifica(b, a)){
+                teste = 0;
+                printf("Impossivel agendar evento %s. Participante %s tem um evento sobreposto.\n", b.descricao, participante);
+            } 
+    } 
+    return teste;  
+}
+
+int verificaP(char participante[MAXIMO_NOME], evento a, evento b){
+    int teste = 1;
+    if(!strcmp(participante, a.participante_um) || !strcmp(participante, a.participante_dois) || 
+       !strcmp(participante, a.responsavel) || !strcmp(participante, a.participante_tres)){
+            if(!verifica(b, a)){
+                teste = 0;
+            } 
+    } 
+    return teste;  
+}
