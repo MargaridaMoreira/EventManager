@@ -138,10 +138,10 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
         if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
             teste = 0;
         }
-        if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+        if(a.participante_dois[0] != '\0' && !verificaParticipante(a.participante_dois, reservaSalas[i], a)){
             teste = 0;
         }
-        if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+        if(a.participante_tres[0] != '\0' && !verificaParticipante(a.participante_tres, reservaSalas[i], a)){
             teste = 0;
         }
     }
@@ -158,7 +158,7 @@ void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS],int numEventos){
     ordenaEventos(reservaSalas, numEventos);
     for(i = 0; i < numEventos; i ++){
         if(reservaSalas[i].sala == sala){
-            printf("%s %d %04d %d Sala%d %s\n", reservaSalas[i].descricao, reservaSalas[i].dia, 
+            printf("%s %08d %04d %d Sala%d %s\n", reservaSalas[i].descricao, reservaSalas[i].dia, 
                    reservaSalas[i].inicio, reservaSalas[i].duracao, reservaSalas[i].sala, reservaSalas[i].responsavel);
             if(reservaSalas[i].numParticipantes == 3){
                 printf("* %s %s %s\n", reservaSalas[i].participante_um, reservaSalas[i].participante_dois, 
@@ -177,7 +177,7 @@ void listaEvento(evento reservaSalas[SALAS*EVENTOS],int numEventos){
     int i;
     ordenaEventos(reservaSalas, numEventos);
     for(i = 0; i < numEventos; i ++){
-        printf("%s %d %04d %d Sala%d %s\n", reservaSalas[i].descricao, reservaSalas[i].dia, 
+        printf("%s %08d %04d %d Sala%d %s\n", reservaSalas[i].descricao, reservaSalas[i].dia, 
                reservaSalas[i].inicio, reservaSalas[i].duracao, reservaSalas[i].sala, reservaSalas[i].responsavel);
         if(reservaSalas[i].numParticipantes == 3){
                 printf("* %s %s %s\n", reservaSalas[i].participante_um, reservaSalas[i].participante_dois, 
@@ -257,10 +257,10 @@ void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
                 if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
                     teste = 0;
                 }
-                if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                if(a.participante_dois[0] != '\0' && !verificaParticipante(a.participante_dois, reservaSalas[i], a)){
                     teste = 0;
                 }
-                if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+                if(a.participante_tres[0] != '\0' && !verificaParticipante(a.participante_tres, reservaSalas[i], a)){
                     teste = 0;
                 }         
             }
@@ -446,14 +446,19 @@ void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
             printf("Impossivel remover participante. Participante %s e o unico participante no evento %s.\n", descricao[1], descricao[0]);
         } else {
             if(!strcmp(descricao[1], reservaSalas[indice].participante_um)){
-                reservaSalas[indice].participante_um[0] = '\0';
+                strcpy(reservaSalas[indice].participante_um,reservaSalas[indice].participante_dois);
+                strcpy(reservaSalas[indice].participante_dois,reservaSalas[indice].participante_tres);
+                reservaSalas[indice].participante_tres[0] = '\0';                               
+                reservaSalas[indice].numParticipantes --;
             } else if (!strcmp(descricao[1], reservaSalas[indice].participante_dois)){
-                reservaSalas[indice].participante_dois[0] = '\0';
-            } else {
+                strcpy(reservaSalas[indice].participante_dois,reservaSalas[indice].participante_tres);
                 reservaSalas[indice].participante_tres[0] = '\0';
+                reservaSalas[indice].numParticipantes --;
+            } else if (!strcmp(descricao[1], reservaSalas[indice].participante_tres)){
+                reservaSalas[indice].participante_tres[0] = '\0';
+                reservaSalas[indice].numParticipantes --;
             }
         }
-        reservaSalas[indice].numParticipantes --;
     }
 }
 
@@ -478,17 +483,11 @@ void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos){
     evento a;
     for (i = 0; i < numEventos; i++){
         for(j = i + 1; j < numEventos; j++){
-            if (ordenaData(reservaSalas[i]) > ordenaData(reservaSalas[j])){
+            if ((ordenaData(reservaSalas[i]) > ordenaData(reservaSalas[j]) || 
+            (ordenaData(reservaSalas[i]) == ordenaData(reservaSalas[j]) && reservaSalas[i].sala > reservaSalas[j].sala))){
                 a = reservaSalas[i];
                 reservaSalas[i] = reservaSalas[j];
                 reservaSalas[j] = a;
-            }
-            if(ordenaData(reservaSalas[i]) == ordenaData(reservaSalas[j])){
-                if(reservaSalas[i].sala > reservaSalas[j].sala){
-                    a = reservaSalas[i];
-                    reservaSalas[i] = reservaSalas[j];
-                    reservaSalas[j] = a;
-                }
             }
         }
     }
@@ -505,20 +504,22 @@ int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVEN
 }
 
 int verifica(evento a, evento existente){
-    if (a.inicio > existente.inicio){
-        if(horaFinal(existente) > a.inicio){
+    if(a.dia == existente.dia){
+        if (a.inicio > existente.inicio){
+            if(horaFinal(existente) > a.inicio){
+                return 0;
+            } else {
+                return 1;
+            }
+        } else if (a.inicio < existente.inicio){
+            if(horaFinal(a) > existente.inicio){
+                return 0;
+            } else {
+                return 1;
+            }
+        } else if (a.inicio == existente.inicio){
             return 0;
-        } else {
-            return 1;
         }
-    } else if (a.inicio < existente.inicio){
-        if(horaFinal(a) > existente.inicio){
-            return 0;
-        } else {
-            return 1;
-        }
-    } else if (a.inicio == existente.inicio){
-        return 0;
     }
     return 1;
 }
