@@ -20,6 +20,8 @@ typedef struct {
     int numParticipantes;
 } evento;
 
+int ordena = 1;
+
 void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos);
 void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS], int numEventos);
 void listaEvento(evento reservaSalas[SALAS*EVENTOS],int numEventos);
@@ -157,13 +159,16 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     if(teste){
         reservaSalas[(*numEventos)] = a;
         (*numEventos) ++;
+        ordena = 0;
     }
     return;
 }
 
 void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS],int numEventos){
     int i;
-    ordenaEventos(reservaSalas, numEventos);
+    if(!ordena){
+        ordenaEventos(reservaSalas, numEventos);
+    }
     for(i = 0; i < numEventos; i ++){
         if(reservaSalas[i].sala == sala){
             printf("%s %08d %04d %d Sala%d %s\n", reservaSalas[i].descricao, reservaSalas[i].dia, 
@@ -183,7 +188,9 @@ void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS],int numEventos){
 
 void listaEvento(evento reservaSalas[SALAS*EVENTOS],int numEventos){
     int i;
-    ordenaEventos(reservaSalas, numEventos);
+    if(!ordena){
+        ordenaEventos(reservaSalas, numEventos);
+    }
     for(i = 0; i < numEventos; i ++){
         printf("%s %08d %04d %d Sala%d %s\n", reservaSalas[i].descricao, reservaSalas[i].dia, 
                reservaSalas[i].inicio, reservaSalas[i].duracao, reservaSalas[i].sala, reservaSalas[i].responsavel);
@@ -218,8 +225,14 @@ void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     } else if (indice == (EVENTOS * SALAS)-1) {
         (*numEventos)--;
     } else {
-        memmove(&reservaSalas[indice], &reservaSalas[indice + 1], ((*numEventos)) * sizeof(reservaSalas[indice]));
+        for(i = indice; i < ((*numEventos)-1); i++){
+            reservaSalas[i] = reservaSalas[i + 1];
+        }
         (*numEventos)--;
+
+
+        /*memmove(&reservaSalas[indice], &reservaSalas[indice + 1], ((*numEventos)) * sizeof(reservaSalas[indice]));*/
+        
     }
     return;
 
@@ -284,6 +297,7 @@ void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
             }
         }
         if(teste){
+            ordena = 0;
             reservaSalas[indice].inicio = atoi(descricao[1]);
         }
     }
@@ -341,6 +355,7 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
             }
         }
         if(teste){
+            ordena = 0;
             reservaSalas[indice].duracao = atoi(descricao[1]);
         }
     }
@@ -381,6 +396,7 @@ void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos){
                 return;                        
             }
         }
+        ordena = 0;
         reservaSalas[indice].sala = atoi(descricao[1]);
     }
 }
@@ -511,6 +527,7 @@ int ordenaData(evento a){
 void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos){
     int i, j;
     evento a;
+    ordena = 1;
     for (i = 0; i < numEventos; i++){
         for(j = i + 1; j < numEventos; j++){
             if ((ordenaData(reservaSalas[i]) > ordenaData(reservaSalas[j]) || 
