@@ -37,6 +37,7 @@ int verificaParticipante(char participante[MAXIMO_NOME], evento a, evento b);
 int verificaP(char participante[MAXIMO_NOME], evento a, evento b);
 int ordenaData(evento a);
 void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos);
+int cmpfunc (const void * evento1, const void * evento2);
 int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVENTOS], int numEventos);
 
 int main(){
@@ -525,20 +526,16 @@ int ordenaData(evento a){
 }
 
 void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos){
-    int i, j;
-    evento a;
-    ordena = 1;
-    for (i = 0; i < numEventos; i++){
-        for(j = i + 1; j < numEventos; j++){
-            if ((ordenaData(reservaSalas[i]) > ordenaData(reservaSalas[j]) || 
-            (ordenaData(reservaSalas[i]) == ordenaData(reservaSalas[j]) && reservaSalas[i].sala > reservaSalas[j].sala))){
-                a = reservaSalas[i];
-                reservaSalas[i] = reservaSalas[j];
-                reservaSalas[j] = a;
-            }
-        }
-    }
+    qsort(reservaSalas, numEventos, sizeof(evento), cmpfunc);
 }
+
+int cmpfunc (const void * evento1, const void * evento2) {
+    if (ordenaData(*(evento*)evento1) == ordenaData(*(evento*)evento2) && (*(evento*)evento1).sala > (*(evento*)evento2).sala){
+        return (( *(evento*)evento1).sala - (*(evento*)evento2).sala);
+    }
+    return (ordenaData(*(evento*)evento1) - ordenaData(*(evento*)evento2));
+}
+
 
 int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVENTOS], int numEventos){
     int indice = -1, i;
