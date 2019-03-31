@@ -4,8 +4,8 @@
 
 #define SALAS 10
 #define EVENTOS 100
-#define MAXIMO_NOME 63
-#define MAX 340
+#define MAXIMO_NOME 64
+#define MAX 1024
 
 typedef struct {
     char descricao[MAXIMO_NOME];
@@ -38,7 +38,7 @@ void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos);
 int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVENTOS], int numEventos);
 
 int main(){
-    evento reservaSalas[SALAS * EVENTOS];
+    evento reservaSalas[SALAS * EVENTOS] = {0};
     int numEventos = 0, sala;
     
     char opcao;
@@ -124,6 +124,7 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     strcpy(a.participante_dois, descricao[7]);
     strcpy(a.participante_tres, descricao[8]); 
 
+
     for(i = 0; i < (*numEventos); i ++){
         if(a.sala == reservaSalas[i].sala && !verifica(a, reservaSalas[i])){
             printf("Impossivel agendar evento %s. Sala%d ocupada.\n", a.descricao, a.sala);
@@ -138,12 +139,19 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
         if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
             teste = 0;
         }
-        if(a.participante_dois[0] != '\0' && !verificaParticipante(a.participante_dois, reservaSalas[i], a)){
-            teste = 0;
+        if(a.numParticipantes == 3){
+            if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                teste = 0;
+            }
+            if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+                teste = 0;
+            }
         }
-        if(a.participante_tres[0] != '\0' && !verificaParticipante(a.participante_tres, reservaSalas[i], a)){
-            teste = 0;
-        }
+        if(a.numParticipantes == 2){
+            if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                teste = 0;
+            }
+        }  
     }
    
     if(teste){
@@ -207,8 +215,10 @@ void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     if(indice == -1){
         printf("Evento %s inexistente.\n", descricao);
         return;
+    } else if (indice == (EVENTOS * SALAS)-1) {
+        (*numEventos)--;
     } else {
-        memmove(&reservaSalas[indice], &reservaSalas[indice + 1], ((*numEventos)-1) * sizeof(reservaSalas[indice]));
+        memmove(&reservaSalas[indice], &reservaSalas[indice + 1], ((*numEventos)) * sizeof(reservaSalas[indice]));
         (*numEventos)--;
     }
     return;
@@ -257,12 +267,20 @@ void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
                 if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
                     teste = 0;
                 }
-                if(a.participante_dois[0] != '\0' && !verificaParticipante(a.participante_dois, reservaSalas[i], a)){
-                    teste = 0;
+                if(a.numParticipantes == 3){
+                    if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                        teste = 0;
+                    }
+                    if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+                        teste = 0;
+                    }  
                 }
-                if(a.participante_tres[0] != '\0' && !verificaParticipante(a.participante_tres, reservaSalas[i], a)){
-                    teste = 0;
-                }         
+                if(a.numParticipantes == 2){
+                    if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                        teste = 0;
+                    }
+                }
+                       
             }
         }
         if(teste){
@@ -407,8 +425,8 @@ void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
         if(reservaSalas[indice].numParticipantes == 2){
             strcpy(reservaSalas[indice].participante_tres, descricao[1]);
             reservaSalas[indice].numParticipantes ++;
-
-        } else {
+        } 
+        if(reservaSalas[indice].numParticipantes == 1) {
             strcpy(reservaSalas[indice].participante_dois, descricao[1]);
             reservaSalas[indice].numParticipantes ++;
         }
@@ -444,14 +462,26 @@ void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
             return;
         } else if(reservaSalas[indice].numParticipantes == 1){
             printf("Impossivel remover participante. Participante %s e o unico participante no evento %s.\n", descricao[1], descricao[0]);
-        } else {
+        } else if (reservaSalas[indice].numParticipantes == 2){
             if(!strcmp(descricao[1], reservaSalas[indice].participante_um)){
                 strcpy(reservaSalas[indice].participante_um,reservaSalas[indice].participante_dois);
-                strcpy(reservaSalas[indice].participante_dois,reservaSalas[indice].participante_tres);
+                reservaSalas[indice].participante_dois[0] = '\0'; 
                 reservaSalas[indice].participante_tres[0] = '\0';                               
                 reservaSalas[indice].numParticipantes --;
             } else if (!strcmp(descricao[1], reservaSalas[indice].participante_dois)){
-                strcpy(reservaSalas[indice].participante_dois,reservaSalas[indice].participante_tres);
+                reservaSalas[indice].participante_dois[0] = '\0';
+                reservaSalas[indice].participante_tres[0] = '\0';
+                reservaSalas[indice].numParticipantes --;
+            }
+            
+        } else if(reservaSalas[indice].numParticipantes == 3){
+            if(!strcmp(descricao[1], reservaSalas[indice].participante_um)){
+                strcpy(reservaSalas[indice].participante_um,reservaSalas[indice].participante_dois);
+                reservaSalas[indice].participante_dois[0] = '\0'; 
+                reservaSalas[indice].participante_tres[0] = '\0';                               
+                reservaSalas[indice].numParticipantes --;
+            } else if (!strcmp(descricao[1], reservaSalas[indice].participante_dois)){
+                reservaSalas[indice].participante_dois[0] = '\0';
                 reservaSalas[indice].participante_tres[0] = '\0';
                 reservaSalas[indice].numParticipantes --;
             } else if (!strcmp(descricao[1], reservaSalas[indice].participante_tres)){
