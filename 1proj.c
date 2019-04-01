@@ -4,8 +4,8 @@
 
 #define SALAS 10
 #define EVENTOS 100
-#define MAXIMO_NOME 64
-#define MAX 1024
+#define MAXIMO_NOME 630
+#define MAX 512
 
 typedef struct {
     char descricao[MAXIMO_NOME];
@@ -101,7 +101,7 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     evento a;
 
     c = getchar();
-    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+    for(i = 0; i < MAX-1 && c != '\n'; i++){
         texto[i] = c;
         c = getchar();
     }
@@ -111,7 +111,7 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     token = strtok(texto, ":\n");
     while( token != NULL ) {
         strcpy(descricao[i], token);
-        token = strtok(NULL, ":"); 
+        token = strtok(NULL, ":\n"); 
         size ++;
         i ++;
     }
@@ -212,7 +212,7 @@ void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     int i, c, indice = -1;
 
     c = getchar();
-    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+    for(i = 0; i < MAX-1 && c != '\n'; i++){
         descricao[i] = c;
         c = getchar();
     }
@@ -231,7 +231,6 @@ void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
         }
         (*numEventos)--;
 
-
         /*memmove(&reservaSalas[indice], &reservaSalas[indice + 1], ((*numEventos)) * sizeof(reservaSalas[indice]));*/
         
     }
@@ -245,7 +244,7 @@ void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     evento a;
 
     c = getchar();
-    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+    for(i = 0; i < MAX-1 && c != '\n'; i++){
         texto[i] = c;
         c = getchar();
     }
@@ -255,7 +254,7 @@ void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     token = strtok(texto, ":\n");
     while( token != NULL ) {
         strcpy(descricao[i], token);
-        token = strtok(NULL, ":"); 
+        token = strtok(NULL, ":\n"); 
         i ++;
     }
 
@@ -311,7 +310,7 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     evento a;
 
     c = getchar();
-    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+    for(i = 0; i < MAX-1 && c != '\n'; i++){
         texto[i] = c;
         c = getchar();
     }
@@ -321,7 +320,7 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     token = strtok(texto, ":\n");
     while( token != NULL ) {
         strcpy(descricao[i], token);
-        token = strtok(NULL, ":"); 
+        token = strtok(NULL, ":\n"); 
         i ++;
     }
     
@@ -347,12 +346,19 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
                 if(!verificaParticipante(a.participante_um, reservaSalas[i], a)){
                     teste = 0;
                 }
-                if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
-                    teste = 0;
+                if(a.numParticipantes == 3){
+                    if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                        teste = 0;
+                    }
+                    if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
+                        teste = 0;
+                    }  
                 }
-                if(!verificaParticipante(a.participante_tres, reservaSalas[i], a)){
-                    teste = 0;
-                }         
+                if(a.numParticipantes == 2){
+                    if(!verificaParticipante(a.participante_dois, reservaSalas[i], a)){
+                        teste = 0;
+                    }
+                }        
             }
         }
         if(teste){
@@ -369,7 +375,7 @@ void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     evento a;
 
     c = getchar();
-    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+    for(i = 0; i < MAX-1 && c != '\n'; i++){
         texto[i] = c;
         c = getchar();
     }
@@ -379,7 +385,7 @@ void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     token = strtok(texto, ":\n");
     while( token != NULL ) {
         strcpy(descricao[i], token);
-        token = strtok(NULL, ":"); 
+        token = strtok(NULL, ":\n"); 
         i ++;
     }
     
@@ -407,7 +413,7 @@ void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
 
     c = getchar();
-    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+    for(i = 0; i < MAX-1  && c != '\n'; i++){
         texto[i] = c;
         c = getchar();
     }
@@ -417,7 +423,7 @@ void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     token = strtok(texto, ":\n");
     while( token != NULL ) {
         strcpy(descricao[i], token);
-        token = strtok(NULL, ":"); 
+        token = strtok(NULL, ":\n"); 
         i ++;
     }
     indice = procuraDescricao(descricao[0], reservaSalas, numEventos);
@@ -455,7 +461,7 @@ void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
 
     c = getchar();
-    for(i = 0; i < MAX-1 && c != EOF && c != '\n'; i++){
+    for(i = 0; i < MAX-1 && c != '\n'; i++){
         texto[i] = c;
         c = getchar();
     }
@@ -465,7 +471,7 @@ void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     token = strtok(texto, ":\n");
     while( token != NULL ) {
         strcpy(descricao[i], token);
-        token = strtok(NULL, ":"); 
+        token = strtok(NULL, ":\n"); 
         i ++;
     }
     indice = procuraDescricao(descricao[0], reservaSalas, numEventos);
