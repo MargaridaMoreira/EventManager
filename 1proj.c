@@ -1,3 +1,5 @@
+/*Margarida Moreira 93881*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,8 +22,11 @@ typedef struct {
     int numParticipantes;
 } evento;
 
+/*Flag que testa se o vetor de eventos ja esta ordenado*/
 int ordena = 1;
 
+
+/*Funcoes pedidas pelo enunciado*/
 void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos);
 void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS], int numEventos);
 void listaEvento(evento reservaSalas[SALAS*EVENTOS],int numEventos);
@@ -31,6 +36,8 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos);
 void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos);
 void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos);
 void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos);
+
+/*Funcoes auxiliares*/
 int horaFinal(evento a);
 int verifica(evento a, evento existente);
 int verificaParticipante(char participante[MAXIMO_NOME], evento a, evento b);
@@ -94,12 +101,12 @@ int main(){
     return 0;
 }
 
-void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
-    
+/*Funcao que adiciona evento quando nao ha sobreposicao de salas ou de participantes*/
+void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){    
     char texto[MAX], descricao[9][MAXIMO_NOME] = {0}, *token;
     int i, c, size = 0, teste = 1;
     evento a;
-
+    
     c = getchar();
     for(i = 0; i < MAX-1 && c != '\n'; i++){
         texto[i] = c;
@@ -165,6 +172,7 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     return;
 }
 
+/*Funcao que lista os eventos por ordem cronologica de sala*/
 void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS],int numEventos){
     int i;
     if(!ordena){
@@ -187,6 +195,7 @@ void listaSala(int sala, evento reservaSalas[SALAS*EVENTOS],int numEventos){
     return;  
 }
 
+/*Funcao que lista os eventos por ordem cronologica de todas as salas*/
 void listaEvento(evento reservaSalas[SALAS*EVENTOS],int numEventos){
     int i;
     if(!ordena){
@@ -207,6 +216,7 @@ void listaEvento(evento reservaSalas[SALAS*EVENTOS],int numEventos){
     return;  
 }
 
+/*Funcao que apaga um evento*/
 void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     char descricao[MAXIMO_NOME];
     int i, c, indice = -1;
@@ -231,13 +241,13 @@ void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
         }
         (*numEventos)--;
 
-        /*memmove(&reservaSalas[indice], &reservaSalas[indice + 1], ((*numEventos)) * sizeof(reservaSalas[indice]));*/
         
     }
     return;
 
 }
 
+/*Funcao que altera o inicio de um evento*/
 void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     int i, c, indice, teste = 1;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
@@ -304,6 +314,7 @@ void alteraInicio(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     return;
 }
 
+/*Funcao que altera a duracao do evento*/
 void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     int i, c, indice, teste = 1;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
@@ -369,6 +380,7 @@ void alteraDuracao(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     return;
 }
 
+/*Funcao que altera a sala do evento*/
 void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     int i, c, indice;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
@@ -408,6 +420,7 @@ void alteraSala(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     }
 }
 
+/*Funcao que adiciona um participante a um evento*/
 void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     int i, c, indice;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
@@ -456,6 +469,7 @@ void adicionaParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     }
 }
 
+/*Funcao que remove um participante de um evento*/
 void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     int i, c, indice;
     char descricao[2][MAXIMO_NOME] = {0}, texto[MAX], *token;
@@ -515,6 +529,7 @@ void removeParticipante(evento reservaSalas[EVENTOS*SALAS], int numEventos){
     }
 }
 
+/*Funcao auxiliar que calcula a hora final do evento com base na hora inicial e duracao do evento*/
 int horaFinal(evento a){
     int hora, minutos;
     hora = a.inicio;
@@ -524,6 +539,7 @@ int horaFinal(evento a){
     return hora;
 }
 
+/*Funcao que muda o formato da data de ddmmaaaa para aaaammdd e soma a hora de inicio para comparacao*/
 int ordenaData(evento a){
     int ano = (a.dia%10000);
     int mes = ((a.dia%1000000) - ano)/100;
@@ -531,10 +547,12 @@ int ordenaData(evento a){
     return (ano*10000 + mes + dia)*10000 + a.inicio;  
 }
 
+/*Funcao que ordena os eventos por data*/
 void ordenaEventos(evento reservaSalas[SALAS*EVENTOS], int numEventos){
     qsort(reservaSalas, numEventos, sizeof(evento), cmpfunc);
 }
 
+/*Funcao auxiliar de comparacao para o quick sort*/
 int cmpfunc (const void * evento1, const void * evento2) {
     if (ordenaData(*(evento*)evento1) == ordenaData(*(evento*)evento2) && (*(evento*)evento1).sala > (*(evento*)evento2).sala){
         return (( *(evento*)evento1).sala - (*(evento*)evento2).sala);
@@ -542,7 +560,7 @@ int cmpfunc (const void * evento1, const void * evento2) {
     return (ordenaData(*(evento*)evento1) - ordenaData(*(evento*)evento2));
 }
 
-
+/*Funcao que procura o indice em que determinado evento se encontra pela descricao*/
 int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVENTOS], int numEventos){
     int indice = -1, i;
     for(i = 0; i < numEventos; i++){
@@ -553,6 +571,7 @@ int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVEN
     return indice;
 }
 
+/*Funcao que verifica se os dois eventos estao sobrepostos*/
 int verifica(evento a, evento existente){
     if(a.dia == existente.dia){
         if (a.inicio > existente.inicio){
@@ -574,6 +593,7 @@ int verifica(evento a, evento existente){
     return 1;
 }
 
+/*Funcao que verifica se um participante esta disponivel*/
 int verificaParticipante(char participante[MAXIMO_NOME], evento a, evento b){
     int teste = 1;
     if(!strcmp(participante, a.participante_um) || !strcmp(participante, a.participante_dois) || 
@@ -586,6 +606,7 @@ int verificaParticipante(char participante[MAXIMO_NOME], evento a, evento b){
     return teste;  
 }
 
+/*Funcao que verifica se um participante pode ser adicionado a um evento*/
 int verificaP(char participante[MAXIMO_NOME], evento a, evento b){
     int teste = 1;
     if(!strcmp(participante, a.participante_um) || !strcmp(participante, a.participante_dois) || 
