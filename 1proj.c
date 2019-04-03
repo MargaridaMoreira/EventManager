@@ -6,7 +6,7 @@
 
 #define SALAS 10
 #define EVENTOS 100
-#define MAXIMO_NOME 630
+#define MAXIMO_NOME 64
 #define MAX 512
 
 typedef struct {
@@ -114,6 +114,8 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     }
     texto[i] = '\0';
 
+    /*Separa o input por : e guarda numa matriz auxiliar*/
+    /*Size serve para mais tarde obter o numero de participantes*/
     i = 0;
     token = strtok(texto, ":\n");
     while( token != NULL ) {
@@ -133,7 +135,6 @@ void adicionaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
     strcpy(a.participante_um, descricao[6]);
     strcpy(a.participante_dois, descricao[7]);
     strcpy(a.participante_tres, descricao[8]); 
-
 
     for(i = 0; i < (*numEventos); i ++){
         if(a.sala == reservaSalas[i].sala && !verifica(a, reservaSalas[i])){
@@ -239,9 +240,7 @@ void apagaEvento(evento reservaSalas[SALAS*EVENTOS], int *numEventos){
         for(i = indice; i < ((*numEventos)-1); i++){
             reservaSalas[i] = reservaSalas[i + 1];
         }
-        (*numEventos)--;
-
-        
+        (*numEventos)--;        
     }
     return;
 
@@ -560,7 +559,7 @@ int cmpfunc (const void * evento1, const void * evento2) {
     return (ordenaData(*(evento*)evento1) - ordenaData(*(evento*)evento2));
 }
 
-/*Funcao que procura o indice em que determinado evento se encontra pela descricao*/
+/*Funcao que procura o indice de um que determinado evento, caso a descricao nao exista retorna -1*/
 int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVENTOS], int numEventos){
     int indice = -1, i;
     for(i = 0; i < numEventos; i++){
@@ -572,6 +571,7 @@ int procuraDescricao(char descricao[MAXIMO_NOME], evento reservaSalas[SALAS*EVEN
 }
 
 /*Funcao que verifica se os dois eventos estao sobrepostos*/
+/*O evento a vai ser comparado com eventos já existentes(adicionados na primeira funcao)*/
 int verifica(evento a, evento existente){
     if(a.dia == existente.dia){
         if (a.inicio > existente.inicio){
